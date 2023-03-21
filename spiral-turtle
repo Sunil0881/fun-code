@@ -1,0 +1,20 @@
+import turtle
+import random
+
+# Set up the turtle
+t = turtle.Turtle()
+t.speed('fastest')
+
+# Define the colors
+colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+
+# Draw the spiral
+for i in range(1000):
+    t.color(random.choice(colors))
+    t.forward(i)
+    t.right(91)
+
+# Hide the turtle and exit
+t.hideturtle()
+turtle.done()
+
