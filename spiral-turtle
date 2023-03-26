@@ -6,7 +6,7 @@ t = turtle.Turtle()
 t.speed('fastest')
 
 # Define the colors
-colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+colors = ['red', 'orange', 'yellow', 'blue', 'purple']
 
 # Draw the spiral
 for i in range(1000):
