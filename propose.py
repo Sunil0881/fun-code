@@ -4,7 +4,7 @@ import turtle
 pen = turtle.Turtle()
 
 # Set the pen color and fill color
-pen.color('red', 'red')
+pen.color('yellow', 'red')
 
 # Set the pen size and speed
 pen.pensize(3)
