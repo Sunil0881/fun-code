@@ -20,7 +20,7 @@ pen.circle(50, 180)
 pen.forward(100)
 pen.end_fill()
 
-# Move to a new position for the text
+# Move to a new position for the text.
 pen.penup()
 pen.goto(-90, -100)
 pen.pendown()
