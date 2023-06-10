@@ -26,7 +26,7 @@ pen.goto(-90, -100)
 pen.pendown()
 
 # Write "I love you" using the font and size of your choice
-pen.write("I love you karthika", font=("arial", 30, "normal"))
+pen.write("I love you capsi", font=("arial", 30, "normal"))
 
 # Hide the turtle when done
 pen.hideturtle()
