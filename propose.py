@@ -10,7 +10,7 @@ pen.color('yellow', 'red')
 pen.pensize(3)
 pen.speed(1)
 
-# Draw the heart
+# Draw the heart.
 pen.begin_fill()
 pen.left(45)
 pen.forward(100)
