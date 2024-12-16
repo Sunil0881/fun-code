@@ -1,191 +1,171 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BASE_URL } from "../Constant";
 
-const CreateSiteForm = () => {
-  const [formData, setFormData] = useState({
-    siteName: "",
-    description: "",
-    metadata: {
-      description: "",
-      url: "",
-      logo: "",
-    },
-  });
+const LoadingCard = () => (
+  <div className="border border-orange-100 p-6 rounded-lg animate-pulse">
+    <div className="h-6 bg-orange-100 rounded w-3/4 mb-4"></div>
+    <div className="h-4 bg-orange-50 rounded w-full mb-4"></div>
+    <div className="space-y-3">
+      <div className="h-4 bg-orange-50 rounded w-5/6"></div>
+      <div className="h-4 bg-orange-50 rounded w-4/6"></div>
+    </div>
+  </div>
+);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjAyMDVlMzMyMmI0ZGVhYTY1ZjU2MyIsImlhdCI6MTczNDM1MzAyMywiZXhwIjoxNzM0NDM5NDIzfQ.i73VxprwYeJQ82bIcRUFI4_G95qQqbioW2jerDyJ8lY";
-
-    try {
-      const response = await fetch(`${BASE_URL}/api/sites`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Site created successfully:", data);
-        showNotification("Success!", "Site created successfully", "success");
-      } else {
-        const errorData = await response.json();
-        console.error("Error creating site:", errorData);
-        showNotification("Error", "Failed to create site", "error");
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
-      showNotification("Error", "An error occurred", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("metadata.")) {
-      const field = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        metadata: {
-          ...prev.metadata,
-          [field]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
-  const showNotification = (title, message, type) => {
-    // You can implement a toast notification here
-    alert(`${title}: ${message}`);
-  };
-
-  const inputClass = "mt-2 block w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 transition-all duration-200 ease-in-out focus:border-[#FD7149] focus:ring-2 focus:ring-[#FD7149] focus:ring-opacity-20 hover:border-[#FD7149]";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+const SiteCard = ({ site }) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-orange-100">
-          {/* Form Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-[#FD7149]">Create a New Site</h1>
-            <p className="text-gray-600 mt-2">Fill in the details to create your new website</p>
+    <div className="group relative overflow-hidden border border-orange-100 rounded-xl bg-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      {/* Top accent bar */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-[#FD7149] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+      
+      <div className="p-6">
+        <div className="flex justify-between items-start">
+          <div className="flex-grow">
+            <h2 className="text-2xl font-bold text-gray-900 group-hover:text-[#FD7149] transition-colors duration-300">
+              {site.siteName}
+            </h2>
+            <p className="text-gray-600 mt-2 line-clamp-2">{site.description}</p>
+          </div>
+          
+          <div className="ml-4 relative w-16 h-16">
+            {!isImageLoaded && (
+              <div className="absolute inset-0 bg-orange-50 rounded-lg animate-pulse"></div>
+            )}
+            <img
+              src={site.metadata.logo}
+              alt={`${site.siteName} logo`}
+              className={`w-16 h-16 object-contain rounded-lg shadow-sm transition-opacity duration-300 ${
+                isImageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoad={() => setIsImageLoaded(true)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          <div className="bg-orange-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Meta Description</h3>
+            <p className="text-gray-600 text-sm line-clamp-2">
+              {site.metadata.description}
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information Section */}
-            <div className="bg-orange-50 rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="siteName" className={labelClass}>Site Name</label>
-                  <input
-                    type="text"
-                    id="siteName"
-                    name="siteName"
-                    value={formData.siteName}
-                    onChange={handleInputChange}
-                    placeholder="Enter your site name"
-                    className={inputClass}
-                    required
-                  />
-                </div>
+          <div className="flex items-center justify-between">
+            <a
+              href={site.metadata.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-[#FD7149] hover:text-[#e56642] transition-colors duration-200"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Visit Site
+            </a>
 
-                <div>
-                  <label htmlFor="description" className={labelClass}>Description</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Describe your site"
-                    className={`${inputClass} min-h-[100px]`}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Metadata Section */}
-            <div className="bg-orange-50 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">SEO Metadata</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="metadataDescription" className={labelClass}>Meta Description</label>
-                  <textarea
-                    id="metadataDescription"
-                    name="metadata.description"
-                    value={formData.metadata.description}
-                    onChange={handleInputChange}
-                    placeholder="Enter SEO description"
-                    className={`${inputClass} min-h-[100px]`}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="metadataUrl" className={labelClass}>Site URL</label>
-                  <input
-                    type="url"
-                    id="metadataUrl"
-                    name="metadata.url"
-                    value={formData.metadata.url}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="metadataLogo" className={labelClass}>Logo URL</label>
-                  <input
-                    type="url"
-                    id="metadataLogo"
-                    name="metadata.logo"
-                    value={formData.metadata.logo}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/logo.png"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-6">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full bg-[#FD7149] text-white font-medium py-3 px-4 rounded-lg shadow-md 
-                  hover:bg-[#e56642] transform hover:-translate-y-0.5 transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-[#FD7149] focus:ring-opacity-50
-                  disabled:opacity-70 disabled:cursor-not-allowed
-                  ${isLoading ? 'animate-pulse' : ''}`}
-              >
-                {isLoading ? 'Creating Site...' : 'Create Site'}
+            <div className="flex space-x-2">
+              <button className="p-2 text-gray-600 hover:text-[#FD7149] transition-colors duration-200">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+              <button className="p-2 text-gray-600 hover:text-[#FD7149] transition-colors duration-200">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default CreateSiteForm;
+const SitesList = () => {
+  const [sites, setSites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjAyMDVlMzMyMmI0ZGVhYTY1ZjU2MyIsImlhdCI6MTczNDM1MzAyMywiZXhwIjoxNzM0NDM5NDIzfQ.i73VxprwYeJQ82bIcRUFI4_G95qQqbioW2jerDyJ8lY";
+
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/sites`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSites(data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.message || "Failed to fetch sites");
+        }
+      } catch (error) {
+        setError("An error occurred while fetching sites.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSites();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-[#FD7149] mb-4">Your Sites</h1>
+          <p className="text-gray-600">Manage and monitor all your websites in one place</p>
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-700">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6">
+            {[1, 2, 3].map((n) => (
+              <LoadingCard key={n} />
+            ))}
+          </div>
+        ) : (
+          /* Sites Grid */
+          <div className="grid grid-cols-1 gap-6">
+            {sites.map((site) => (
+              <SiteCard key={site._id} site={site} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && sites.length === 0 && (
+          <div className="text-center py-12">
+            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p className="text-gray-600">No sites found. Start by creating a new site!</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SitesList;
