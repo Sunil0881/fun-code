@@ -1,190 +1,191 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { BASE_URL } from "../Constant";
 
-// Custom Card Components
-const Card = ({ children, className = '', onClick }) => (
-  <div 
-    onClick={onClick}
-    className={`bg-white rounded-lg border border-gray-200 ${className}`}
-  >
-    {children}
-  </div>
-);
+const CreateSiteForm = () => {
+  const [formData, setFormData] = useState({
+    siteName: "",
+    description: "",
+    metadata: {
+      description: "",
+      url: "",
+      logo: "",
+    },
+  });
 
-const CardHeader = ({ children, className = '' }) => (
-  <div className={`p-6 ${className}`}>
-    {children}
-  </div>
-);
+  const [isLoading, setIsLoading] = useState(false);
 
-const CardContent = ({ children, className = '' }) => (
-  <div className={`px-6 pb-6 ${className}`}>
-    {children}
-  </div>
-);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-// SVG Icons
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjAyMDVlMzMyMmI0ZGVhYTY1ZjU2MyIsImlhdCI6MTczNDM1MzAyMywiZXhwIjoxNzM0NDM5NDIzfQ.i73VxprwYeJQ82bIcRUFI4_G95qQqbioW2jerDyJ8lY";
 
-const ListIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
+    try {
+      const response = await fetch(`${BASE_URL}/api/sites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
 
-const ArrowIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-  </svg>
-);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Site created successfully:", data);
+        showNotification("Success!", "Site created successfully", "success");
+      } else {
+        const errorData = await response.json();
+        console.error("Error creating site:", errorData);
+        showNotification("Error", "Failed to create site", "error");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      showNotification("Error", "An error occurred", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-const ChartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 14h4v7H4v-7zM10 10h4v11h-4V10zM16 3h4v18h-4V3z" />
-  </svg>
-);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith("metadata.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        metadata: {
+          ...prev.metadata,
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
-const SettingsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-  </svg>
-);
+  const showNotification = (title, message, type) => {
+    // You can implement a toast notification here
+    alert(`${title}: ${message}`);
+  };
 
-const ActivityIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
-
-const AdminHomePage = () => {
-  const navigate = useNavigate();
-  const [hoveredCard, setHoveredCard] = useState(null);
-
-  const stats = [
-    { label: 'Total Sites', value: '12' },
-    { label: 'Active Sites', value: '8' },
-    { label: 'Recent Updates', value: '24' }
-  ];
-
-  const quickAccessTools = [
-    { icon: <ChartIcon />, title: 'Analytics', description: 'View site performance metrics and visitor insights' },
-    { icon: <SettingsIcon />, title: 'Settings', description: 'Configure global settings and preferences' },
-    { icon: <ActivityIcon />, title: 'Recent Activity', description: 'Track recent changes and updates' }
-  ];
+  const inputClass = "mt-2 block w-full rounded-lg border border-gray-200 px-4 py-3 text-gray-700 transition-all duration-200 ease-in-out focus:border-[#FD7149] focus:ring-2 focus:ring-[#FD7149] focus:ring-opacity-20 hover:border-[#FD7149]";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-orange-50">
-      {/* Top Stats Bar */}
-      <div className="bg-white border-b border-orange-100 py-4 px-6 mb-8 shadow-sm">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-[#FD7149]">Welcome back, Admin</h1>
-          <div className="flex gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl font-bold text-[#FD7149]">{stat.value}</p>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-b from-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-orange-100">
+          {/* Form Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-[#FD7149]">Create a New Site</h1>
+            <p className="text-gray-600 mt-2">Fill in the details to create your new website</p>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Main Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <Card 
-            className="group hover:shadow-lg transition-all duration-300 border-orange-100 hover:border-[#FD7149] cursor-pointer"
-            onClick={() => navigate('/createsite')}
-            onMouseEnter={() => setHoveredCard('create')}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            <CardHeader className="space-y-1">
-              <div className="flex items-center justify-between">
-                <div className="text-[#FD7149] group-hover:scale-110 transition-transform">
-                  <PlusIcon />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="bg-orange-50 rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="siteName" className={labelClass}>Site Name</label>
+                  <input
+                    type="text"
+                    id="siteName"
+                    name="siteName"
+                    value={formData.siteName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your site name"
+                    className={inputClass}
+                    required
+                  />
                 </div>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FD7149]">
-                  <ArrowIcon />
-                </span>
+
+                <div>
+                  <label htmlFor="description" className={labelClass}>Description</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Describe your site"
+                    className={`${inputClass} min-h-[100px]`}
+                    required
+                  />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 group-hover:text-[#FD7149] transition-colors">Create New Site</h2>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Launch a new website with our intuitive site builder. Configure features,
-                design, and settings in minutes.
-              </p>
-              <button
-                onClick={() => navigate('/createsite')}
-                className="w-full bg-[#FD7149] text-white py-3 rounded-lg hover:bg-[#e56642] transition-colors"
-              >
-                Start Building
-              </button>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card 
-            className="group hover:shadow-lg transition-all duration-300 border-orange-100 hover:border-[#FD7149] cursor-pointer"
-            onClick={() => navigate('/listsite')}
-            onMouseEnter={() => setHoveredCard('manage')}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            <CardHeader className="space-y-1">
-              <div className="flex items-center justify-between">
-                <div className="text-[#FD7149] group-hover:scale-110 transition-transform">
-                  <ListIcon />
+            {/* Metadata Section */}
+            <div className="bg-orange-50 rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">SEO Metadata</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="metadataDescription" className={labelClass}>Meta Description</label>
+                  <textarea
+                    id="metadataDescription"
+                    name="metadata.description"
+                    value={formData.metadata.description}
+                    onChange={handleInputChange}
+                    placeholder="Enter SEO description"
+                    className={`${inputClass} min-h-[100px]`}
+                    required
+                  />
                 </div>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[#FD7149]">
-                  <ArrowIcon />
-                </span>
+
+                <div>
+                  <label htmlFor="metadataUrl" className={labelClass}>Site URL</label>
+                  <input
+                    type="url"
+                    id="metadataUrl"
+                    name="metadata.url"
+                    value={formData.metadata.url}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com"
+                    className={inputClass}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="metadataLogo" className={labelClass}>Logo URL</label>
+                  <input
+                    type="url"
+                    id="metadataLogo"
+                    name="metadata.logo"
+                    value={formData.metadata.logo}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com/logo.png"
+                    className={inputClass}
+                    required
+                  />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 group-hover:text-[#FD7149] transition-colors">Manage Sites</h2>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                View, edit, and manage all your existing websites. Monitor performance
-                and make updates easily.
-              </p>
-              <button
-                onClick={() => navigate('/listsite')}
-                className="w-full bg-[#FD7149] text-white py-3 rounded-lg hover:bg-[#e56642] transition-colors"
-              >
-                View Sites
-              </button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Quick Access Tools */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quickAccessTools.map((tool) => (
-            <Card 
-              key={tool.title} 
-              className="hover:shadow-md transition-all duration-300 border-orange-100 hover:border-[#FD7149] cursor-pointer group"
-            >
-              <CardHeader>
-                <div className="text-[#FD7149] mb-2 group-hover:scale-110 transition-transform">
-                  {tool.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#FD7149] transition-colors">
-                  {tool.title}
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  {tool.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full bg-[#FD7149] text-white font-medium py-3 px-4 rounded-lg shadow-md 
+                  hover:bg-[#e56642] transform hover:-translate-y-0.5 transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-[#FD7149] focus:ring-opacity-50
+                  disabled:opacity-70 disabled:cursor-not-allowed
+                  ${isLoading ? 'animate-pulse' : ''}`}
+              >
+                {isLoading ? 'Creating Site...' : 'Create Site'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   );
 };
 
-export default AdminHomePage;
+export default CreateSiteForm;
